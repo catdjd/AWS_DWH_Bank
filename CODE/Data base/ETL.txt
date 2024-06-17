@@ -1,0 +1,471 @@
+
+
+# câu lệnh SQL của các hàm
+
+---AWM
+# Bảng IP
+SELECT
+        sha2('IP|CRMUSER.ACCOUNTS'||a.orgkey, 256) as ip_id,
+        a.ORGKEY as unq_id_in_src_stm,
+        sha2('CL|SRC_STM|CRMUSER.ACCOUNTS', 256) as src_stm_id,
+        sha2('CL|IP_TP|CST', 256) as ip_tp_id,
+        a.NAME as ip_nm,
+        TO_DATE(a.RELATIONSHIPOPENINGDATE,'yyyy-MM-dd') as crt_dt,
+        TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+        TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+        TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt
+    FROM ACCOUNTS a
+	
+# Bảng AR ( bảng GAM)
+SELECT 
+       sha2('AR|TBAADM.GAM'||a.ACID, 256) as ar_id,
+	   sha2('CL|SRC_STM|TBAADM.GAM', 256) as src_stm_id,
+	   a.acid as unq_id_in_src_stm,
+		CASE
+			WHEN a.GL_SUB_HEAD_CODE IN ('27510', '27511', '27512', '27513') THEN 'CC' 
+			WHEN a.SCHM_TYPE IN ('CAA', 'SBA', 'TDA', 'TUA' ) OR ( a.SCHM_TYPE = 'ODA' AND a.SCHM_CODE IN ('OD001', 'OD003', 'OD004', 'OD005', 'OD006', 'OD007', 'OD501', 'OD502', 'OD503','OD504',  'OD505', 'OD506', 'OD523', 'OD524', 'OD525', 'OD526', 'OD527','OD528','OD529', 'OD530', 'OD531', 'OD532', 'OD533', 'OD545')) THEN 'DP'
+			WHEN a.SCHM_TYPE IN ('CLA', 'LAA') THEN 'LN'
+			WHEN a.SCHM_TYPE = 'ODA' THEN 'OD'
+			WHEN a.SCHM_TYPE = 'FBA' THEN 'TF'
+			ELSE 'OTHER' END as ar_tp_code,
+	    a.ACCT_CLS_DATE as est_end_dt,
+		sha2('CCY|TBAADM.CNC'||a.ACCT_CRNCY_CODE,256) as dmnn_ccy_id,
+		a.FORACID as  ar_nbr,
+		a.ACCT_NAME as ar_nm,
+		TO_DATE(a.ACCT_OPN_DATE,'M/d/y') as crt_dt,
+        TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+		TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+		TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt,
+		sha2( concat_ws('','CL|AR_TP', 
+        CASE
+        WHEN a.GL_SUB_HEAD_CODE IN ('27510', '27511', '27512', '27513') THEN 'CC' 
+        WHEN a.SCHM_TYPE IN ('CAA', 'SBA', 'TDA', 'TUA' ) OR ( a.SCHM_TYPE = 'ODA' AND a.SCHM_CODE IN ('OD001', 'OD003', 'OD004', 'OD005', 'OD006', 'OD007', 'OD501', 'OD502', 'OD503','OD504',  'OD505', 'OD506', 'OD523', 'OD524', 'OD525', 'OD526', 'OD527','OD528','OD529', 'OD530', 'OD531', 'OD532', 'OD533', 'OD545')) THEN 'DP'
+        WHEN a.SCHM_TYPE IN ('CLA', 'LAA') THEN 'LN'
+        WHEN a.SCHM_TYPE = 'ODA' THEN 'OD'
+        WHEN a.SCHM_TYPE = 'FBA' THEN 'TF'
+        ELSE 'OTHER' END),256) as ar_tp_id
+FROM GAM a
+
+# Bảng OU ( bảng SOL, SST, STID)
+
+SELECT 
+     sha2('IP|TBAADM.SOL'||a.SOL_ID,256) as ou_id,
+	 a.SOL_ID as ou_code,
+	 sha2('CL|SRC_STM|TBAADM.SOL',256) as src_stm_id,
+	 a.BR_CODE as prn_ou_id ,
+	 c.SET_ID as area_code,
+	 c.SET_DESC as area_nm,
+	 TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+	 TO_DATE('2010-12-12','yyyy-MM-dd') as eff_dt,
+     TO_DATE('2050-12-31','yyyy-MM-dd') as end_dt,
+     a.SOL_DESC as ou_nm
+from SOL a left join SST b on  a.SOL_ID = b.SOL_ID AND b.DEL_FLG = 'N' 
+AND b.SET_ID IN  ('NORTH', 'MIDDLE', 'SOUTEAST', 'HCMC', 'SOUTH')
+left join STID c on b.SET_ID = c.SET_ID
+
+# Bảng acg_stc_itm ( bảng GSH)
+SELECT 
+   sha2('ACG_STC_ITM|TBAADM.GSH'||a.GL_SUB_HEAD_CODE||a.SOL_ID, 256) as acg_stm_itm_id,
+   sha2(a.GL_SUB_HEAD_CODE||a.SOL_ID,256) as unq_id_in_scr_stm, 
+   a.GL_SUB_HEAD_CODE as gl_sub_head_code,
+   a.sol_id as sol_id,
+   sha2('CL|SRC_STM|TBAADM.GSH', 256) as  src_stm_id,
+   a.GL_SUB_HEAD_DESC as dsc,
+   TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+   TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+   TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt,
+   TO_DATE(a.CREAT_DATE,'yyyy-MM-dd') as crt_dt
+ from GSH a
+ 
+ # Bảng ar_X_ip (bảng GAM)
+ SELECT 
+   sha2('AR|TBAADM.GAM'||a.ACID, 256) as ar_id,
+   sha2('CL|SRC_STM|TBAADM.GAM', 256) as src_stm_id,
+   sha2('IP|CRMUSER.ACCOUNTS'||a.CIF_ID,256) as ip_id,
+   sha2('CL|AR_X_IP_TP|AR_X_CST', 256) as ar_x_ip_rltnp_tp_id ,
+   TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+   TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+   TO_DATE('2400-12-31','yyyy-MM-dd') as END_DT
+ from GAM a
+ 
+ # Bảng AU_BAL ( bảng EAB)
+ SELECT  
+    sha2('AU|TBAADM.GAM'||a.ACID,256) as au_id, 
+	sha2('CL|SRC_STM|TBAADM.EAB', 256) as src_stm_id,
+	sha2('CL|PNT_BAL_TP|CLS_BALANCE', 256) as pnt_bal_tp_id,
+	sha2('CL|UOM|CCY', 256) as uom_id,
+	cast(a.TRAN_DATE_BAL as decimal(25,4)) as pst_atm,
+	a.EAB_CRNCY_CODE as crncy_code,
+	TO_DATE(a.EOD_DATE,'yyyy-MM-dd') as eff_strt_dt,
+	TO_DATE('2400-12-31','yyyy-MM-dd') as eff_end_dt
+FROM EAB a
+
+# Bảng ar_x_au ( bảng GAM)
+SELECT 
+   sha2('AR|TBAADM.GAM'||a.ACID,256) as ar_id,
+   sha2('CL|SRC_STM|TBAADM.GAM', 256) as src_stm_id,
+   sha2('AU|TBAADM.GAM'||a.ACID,256) as au_id,
+   sha2('CL|AR_X_AU_TP|AR_X_ACT_CLS_BAL', 256) as ar_x_au_rltnp_id,
+    TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+    TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+    TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt
+ from GAM a
+ 
+ # Bảng ccy (CNC)
+SELECT 
+   SHA2('CCY|TBAADM.CNC'||a.CRNCY_CODE,256) as ccy_id,
+   sha2('CL|SRC_STM|TBAADM.CNC', 256) as src_stm_id ,
+   a.CRNCY_CODE as unq_id_in_src_st,
+   a.CRNCY_CODE as ccy_code,
+   a.CRNCY_NAME as ccy_nm,
+   TO_DATE('{pDate}','yyyy-MM-dd') as crt_dt,
+   TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+   TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+   TO_DATE('2040-12-31','yyyy-MM-dd') as end_dt
+from CNC a
+
+# Bảng Ar_x_ou (SOL)
+SELECT 
+     sha2('AR|TBAADM.GAM'||a.ACID,256) as ar_id,
+	 sha2('IP|TBAADM.SOL'||a.SOL_ID,256) as ou_id,
+	 sha2('CL|SCR_STM|TBAADM.SOL', 256) as src_stm_id,
+	 SHA2('CL|AR_X_OU_TP|AR_X_OU',256) AS ar_x_ou_rltnp_id,
+	 a.SOL_ID as ou_code,
+	  TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+      TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+     TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt
+from GAM a left join SOL b on a.SOL_ID = b.SOL_ID
+
+# Bảng pd  (GSP)
+select 
+     sha2('PD|TBAADM.GSP'||a.SCHM_CODE, 256) as pd_id,
+	 a.SCHM_CODE as unq_id_in_src_stm,
+	 a.SCHM_CODE as pd_code,
+	 a.SCHM_DESC as  pd_nm,
+	 sha2('CL|SRC_STM|TBAADM.GSP', 256) as scr_stm_id,
+	 sha2('CL|PD_TP|ACCT_SCHM_CODE',256) as pd_tp_id,
+	 TO_DATE('{pDate}','yyyy-MM-dd') as crt_dt,
+     TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+	 a.START_DATE as eff_dt,
+	 a.END_DATE as end_dt
+from GSP a
+
+# Bảng ar_x_pd (gam và gsp)
+SELECT 
+     sha2('AR|TBAADM.GAM'||a.ACID,256) as ar_id,
+     sha2('PD|TBAADM.GSP'||a.SCHM_CODE, 256) as pd_id,
+	 sha2('CL|SRC_STM|TBAADM.GAM',256) as src_stm_id,
+	 sha2('CL|AR_X_PD_TP|AR_X_SCHM_CODE',256) AS ar_x_pd_rltnp_tp_id,
+	  TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+      TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+     TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt
+from GAM a left join GSP b on  a.BANK_ID = b.BANK_ID 
+         AND a.SCHM_CODE = b.SCHM_CODE AND b.DEL_FLG = 'N'
+
+# Bảng ip_x_cl (account)
+select 
+    sha2('IP|CRMUSER.ACCOUNTS'||a.ORGKEY,256)  as ip_id,
+	sha2(concat_ws('', 'CL|CST_TP',
+		case when a.CUST_TYPE ='22006' then 'KHDN'
+		when a.CUST_TYPE ='20055' THEN 'HKD'
+		ELSE 'KHCN'
+		end),256) as cl_id,
+	case when a.CUST_TYPE ='22006' then 'KHDN'
+		when a.CUST_TYPE ='20055' THEN 'HKD'
+		ELSE 'KHCN'
+		end as cl_code,
+	case when a.CUST_TYPE ='22006' then 'KHDN'
+		when a.CUST_TYPE ='20055' THEN 'HKD'
+		ELSE 'KHCN'
+		end as cst_type,
+	sha2('CL|IP_X_CL_TP|IP_X_CST_TYPE', 256) as ip_x_cl_rltnp_tp_id,
+	sha2('CL|SCR_STM|CRMUDER.ACCOUNTS',256) as src_stm_id,
+	  TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+      TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+     TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt
+from  ACCOUNTS a
+
+# Bảng txn on_line( giao dịch nội địa) với print
+
+SELECT
+    sha2(concat_ws('', 'CL|LOAIGD_TXN_TP',
+        CASE 
+            WHEN a.CA_RE = 'RE' AND a.LOAI_GD = 'Attended' THEN 'RE' 
+            WHEN a.CA_RE = 'Tranfer' AND a.LOAI_GD = 'Attended' THEN 'Transfer' 
+            WHEN a.CA_RE = 'RE' AND a.LOAI_GD = 'MO/TO' THEN 'MO/TO' 
+            WHEN a.CA_RE = 'CA' AND a.LOAI_GD = 'Attended' THEN 'CA' 
+        END), 256) as txn_tp_id,
+    CASE 
+        WHEN a.CA_RE = 'RE' AND a.LOAI_GD = 'Attended' THEN 'RE' 
+        WHEN a.CA_RE = 'Tranfer' AND a.LOAI_GD = 'Attended' THEN 'Transfer' 
+        WHEN a.CA_RE = 'RE' AND a.LOAI_GD = 'MO/TO' THEN 'MO/TO' 
+        WHEN a.CA_RE = 'CA' AND a.LOAI_GD = 'Attended' THEN 'CA' 
+    END as txn_tp_code,
+    sha2('CCY|TBAADM.CNC|VND', 256) as txn_ccy_id,
+    sha2('IP|TBAADM.SOL'||a.CRDBANK, 256) as txn_ou_id,
+    a.CRDBANK as ou_code,
+    TO_DATE(a.TXNDATE,'yyyy-MM-dd') as txn_dt,
+    sha2('CL|SRC_STM|CARD2.ONLINE_AUT', 256) as src_stm_id,
+    sha2(concat('TXN|CARD2.ONLINE_AUT', a.SERNO, substr(a.I003_PROC_CODE, 1, 2), a.TRANSACTION_ID), 256) as txn_id,
+    a.I043A_MERCH_NAME as dsc,
+    sha2('RI|CARD2.PRIME_VTOP'||a.I002_NUMBER, 256) as pymtc_id,
+    a.I018_MERCH_TYPE mcc,
+    cast(a.I004_AMT_TRXN as decimal(25,4)) as net_cash_flow_amt_fcy,
+    a.card_id as card_id
+FROM TXN a 
+WHERE a.I039_RESP_CD = '0'
+
+# Bảng TXN_fee (thuphi)
+select 
+    sha2('TXN|HTD'||a.ID,256) as txn_fee_id,
+	sha2('IP|CRMUSER.ACCOUNTS'||a.CIF,256) as cst_id,
+	sha2('IP|TBAADM.SOL'||a.SOL,256) as ou_id,
+	a.FORACID as ar_nbr,
+	a.GLSH as GL_SUB_HEAD_CODE,
+	a.TRAN_DATE as txn_dt,
+	a.FEE_TYPE as fee_type,
+	a.FEE_GRP as fee_grp,
+	a.FEE_AMT as txn_fee_amt
+from a
+
+# Bảng txn_expn (chi phi)
+select 
+    sha2('TXN|HTD'||a.ID,256) as txn_expn_id,
+	sha2('IP|TBAADM.SOL'||a.SOL,256) as ou_id,
+	a.GLSH as GL_SUB_HEAD_CODE,
+	a.TRAN_DATE as txn_dt,
+	a.FEE_TYPE as fee_type,
+	a.FEE_GRP as fee_grp,
+	a.FEE_AMT as txn_expn_amt
+from a
+
+# Bảng pymtc
+select 
+   sha2('RI|CARD2.PRIME_VTOP'||a.CARDNBR, 256) as pymtc_id,
+   sha2('CL||SRC_STM|CARD2.PRIME_VTOP',256) as src_stm_id,
+   sha2(concat_ws('','CL|PYMTC_TP', CASE WHEN (
+	a.CARDNBR BETWEEN '9704310000000000' AND '9704310199999999' 
+	OR a.CARDNBR BETWEEN '9704313900000000' AND '9704313900999999' 
+	OR a.CARDNBR BETWEEN '9704310200000000' AND '9704310299999999' 
+	OR (a.CARDNBR LIKE '7%' 
+	AND SUBSTR(a.CARDNBR, 1, 8) NOT IN ('70707047', '70707048', '70707099')
+	)
+	) THEN 'VTOP' ELSE 'DT_HIEU' END),256) as pymtc_tp_id,
+	sha2('IP|CRMUSER.ACCOUNTS'|| a.ORGKEY,256) as cardhold_id,
+	sha2('IP|TBAADM.SOL'||b.PRIMARY_SOL_ID,256) as issue_ou_id ,
+	c.sol_id as ou_code,
+	a.CARDNBR as card_nbr,
+    TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+    TO_DATE('{pDate}','yyyy-MM-dd') as eff_dt,
+    TO_DATE('2400-12-31','yyyy-MM-dd') as end_dt,
+	a.acctnbr as acctnbr,
+	b.NAME as cardhold_nm,
+	a.TITLE as CARD_TYPE,
+	a.CARD_ID as CARD_ID
+from CARD2 a join ACCOUNTS b on a.ORGKEY = b.ORGKEY
+	   left join SOL c on b.PRIMARY_SOL_ID = c.SOL_ID
+
+# Bảng exp_rate
+select 
+   sha2('CD|TBAADM.RTH'||'a.FXD_CRNCY_CODE|a.VAR_CRNCY_CODE |a.RATECODE',256) as exg_rate_id,
+   sha2('CCY|TBAADM.CNC'||a.FXD_CRNCY_CODE,256) as frst_ccy_id,
+   a.FXD_CRNCY_CODE as frst_ccy_code,
+   sha2('CCY|TBAADM.CNC'||a.VAR_CRNCY_CODE,256) as scd_ccy_id,
+   a.VAR_CRNCY_CODE as scd_ccy_code,
+   sha2('CL|SRC_STM|TBAADM.RTH',256) as src_stm_id,
+    cast(a.VAR_CRNCY_UNITS as decimal(25,8)) as exg_rate_val,
+    TO_DATE('{pDate}','yyyy-MM-dd') as ppn_dt,
+    TO_DATE(a.RTLIST_DATE,'yyyy-MM-dd') as crt_dt
+from RTH a
+	   
+
+--- Tầng Data mart
+ # Bảng ac_ar_dim (ar, cv)
+ select 
+    a.ar_id as  anchord_id ,
+	a.ar_nbr as ar_nbr,
+	a.AR_TP_CODE as ac_tp,
+	a.TERM_IN_DYS as TERM_IN_DYS,
+    a.TERM_IN_MO as TERM_IN_MO,
+	TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+    TO_DATE('2040-12-31','yyyy-MM-dd') as end_to_dt
+from a join b on a.AR_TP_ID = b.CL_ID 
+AND b.CL_CODE IN  ('LN', 'CC', 'TF','DP') AND  b.CL_SCM_CODE = 'AR_TP'
+
+# Bảng ou_dim (ou)
+select
+    a.ou_id as  anchord_id,
+    a.ou_code as ou_code,
+    a.ou_nm as ou_nm,
+   DECODE(a.OU_CODE, '1000', 'HO', a.AREA_CODE) as area_code,
+   DECODE(a.OU_CODE, '1000', 'EXIMBANK Hội Sở', a.AREA_NM) as area_nm,
+   TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+   TO_DATE('2400-12-31','yyyy-MM-dd') as eff_to_dt
+from OU a
+
+# Bảng ccy_dim (ccy)
+select  
+   a.ccy_id as anchord_id,
+   a.ccy_code as alphabet_ccy_code,
+   TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+   TO_DATE('2400-12-31','yyyy-MM-dd') as eff_to_dt
+  from CCY a
+  
+# Bảng cst_dim (ip) (ip_x_cl)
+select 
+  a.ip_id as anchor_id,
+  a.ip_nm as cst_nm,
+  a.unq_id_in_src_stm as cst_nbr,
+   b.CST_TYPE as CST_TYPE,
+  TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+   CASE
+	 WHEN a.unq_id_in_src_stm IN ('100056785','100570468')
+	  THEN TO_DATE('2400-12-31','yyyy-MM-dd')
+	  ELSE TO_DATE(a.end_dt,'yyyy-MM-dd')
+	END  as eff_to_dt
+ from IP a left join IPXCL b on a.ip_id = b.ip_id 
+ 
+ # Bảng TXN_DIM(loai giao đich)
+ select
+	 a.txn_tp_code as txn_tp_code,
+	 a.txn_tp_nm as txn_tp_nm,
+	 TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+     TO_DATE('2400-12-31','yyyy-MM-dd') as eff_to_dt
+  from GD a
+  
+ # Bảng card_type_id (cv)
+ select 
+    a.cl_id as anchord_id,
+	a.cl_code as CRD_TP_CODE,
+	a.cl_nm as CRD_TP_NM,
+	TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+    TO_DATE('2400-12-31','yyyy-MM-dd') as eff_to_dt
+    from CV a where a.CL_SCM_CODE = 'PYMTC_TP'
+   
+  # Bảng fee_tp_dim (loại phí)
+ select 
+    a.fee_grp as fee_grp,
+	a.fee_type as fee_type,
+	TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+    TO_DATE('2400-12-31','yyyy-MM-dd') as eff_to_dt
+ from PHITP a
+  
+  # Bảng gl_itm_dim (acg_stc_itm)
+  select DISTINCT
+    a.GL_SUB_HEAD_CODE as GL_CODE,
+	TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+    TO_DATE('2400-12-31','yyyy-MM-dd') as eff_to_dt,
+    a.dsc as gl_dsc
+from GL a
+
+# Bảng pd_dim (pd)
+select 
+  a.pd_id as anchor_id,
+  a.pd_nm as pd_nm,
+  a.pd_code as pd_code,
+  a.pd_code as pd_scm_nm,
+  TO_DATE('{pDate}','yyyy-MM-dd') as eff_fm_dt,
+  TO_DATE('2400-12-31','yyyy-MM-dd') as eff_to_dt
+from PD a
+
+
+# bảng expn_anl_fct
+select 
+   e.cdr_dt_dim_id as cdr_dt_dim_id,
+   c.ou_dim_id as ou_dim_id,
+   b.fee_tp_dim_id as fee_tp_dim_id,
+   d.gl_itm_dim_id as gl_itm_dim_id,
+   cast(a.txn_expn_amt as integer ) as txn_fee_amt,
+   a.remark as remarks
+ from TXN_EXPN a left join FEE_DIM b on a.FEE_TYPE = b.FEE_TYPE AND b.FEE_GRP= a.FEE_GRP
+       left join OU_DIM c on TRIM(a.OU_ID)= TRIM(c.anchord_id)
+	     and to_date(c.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+         and to_date(c.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+	   left join GL_DIM d on d.GL_CODE = a.GL_SUB_HEAD_CODE
+	     and to_date(d.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+         and to_date(d.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+	   left join CDR_DIM e on a.TXN_DT = e.cdr_dt
+	   
+	   
+# Bảng txn_fee_anl_fct
+select 
+   f.cdr_dt_dim_id as cdr_dt_dim_id,
+   b.cst_dim_id as cst_dim_id,
+   c.ou_dim_id as ou_dim_id,
+   d.fee_tp_dim_id as fee_tp_dim_id,
+   e.ac_ar_dim_id as ac_ar_dim_id,
+   g.gl_itm_dim_id as gl_itm_dim_id,
+   cast(a.txn_fee_amt as integer) as txn_fee_amt
+ from 
+   TXN_FEE a join CST_DIM b on TRIM(a.CST_ID)= TRIM(b.anchor_id)
+   left join OU_DIM c on TRIM(a.OU_ID)= TRIM(c.anchord_id)
+         and to_date(c.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+         and to_date(c.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+   left join FEE_DIM d on d.FEE_TYPE= a.FEE_TYPE AND d.FEE_GRP= a.FEE_GRP
+   left join AR_DIM e on a.AR_NBR= e.AR_NBR
+        and to_date(e.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+        and to_date(e.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+   left join GL_DIM g on g.GL_CODE = a.GL_SUB_HEAD_CODE
+        and to_date(g.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+        and to_date(g.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+   left join CDR_DIM f on a.TXN_DT = f.cdr_dt
+   
+ # Bảng fnc_dep_ar_fct
+ select 
+   l.cdr_dt_dim_id as cdr_dt_dim_id,
+   e.cst_dim_id as cst_dim_id,
+   f.ou_dim_id as ou_dim_id,
+   i.pd_dim_id as pd_dim_id,
+   g.ac_ar_dim_id as ac_ar_dim_id,
+   CASE
+    WHEN CAST(b.pst_atm AS decimal(25,4)) < 0 THEN 0
+    ELSE CAST(b.pst_atm AS decimal(25,4))
+   END AS amt,
+   b.crncy_code as crncy_code
+   
+   from AR a  join ARxAU n on a.AR_ID = n.AR_ID
+        join ARxIP c on c.AR_ID= a.AR_ID
+        join ARxOU d on d.AR_ID= a.AR_ID
+        join ARxPD h on h.AR_ID = a.AR_ID
+        join  AU_BAL b on b.AU_ID= n.AU_ID 
+		left join CST_DIM e on c.IP_ID = e.ANCHOR_ID
+		    and to_date(e.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+            and to_date(e.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+		left join OU_DIM f on d.OU_ID= f.anchord_id
+		    and to_date(f.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+            and to_date(f.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+		left join AR_DIM g on g.ar_nbr = a.AR_nbr
+		   	and to_date(g.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+            and to_date(g.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+		left join PD_DIM i on h.PD_ID= i.ANCHOR_ID
+		left join CCY_DIM k on  b.crncy_code = k.alphabet_ccy_code
+        left join CDR_DIM l on l.cdr_dt = b.eff_strt_dt
+		
+# Fact CARD_TXN_ANL_FCT
+select 
+    h.cdr_dt_dim_id as cdr_dt_dim_id,
+	d.ou_dim_id as ou_dim_id,
+	e.crd_tp_dim_id as card_tp_dim_id,
+	f.cst_dim_id as cst_dim_id,
+    g.txn_tp_dim_id as txn_tp_dim_id,
+    cast(a.NET_CASH_FLOW_AMT_FCY as decimal(25,4)) as txn_amt,
+    to_date(a.txn_dt,'yyyy-MM-dd') as txn_dt,
+    to_date(a.txn_dt,'yyyy-MM-dd') as pst_dt,
+    a.dsc as txn_dsc
+from TXN a join PYMTC b  ON a.PYMTC_ID = b.PYMTC_ID and a.card_id = b.card_id
+	   left join OU_DIM d on a.ou_code = d.ou_code
+	        and to_date(d.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+            and to_date(d.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+	   left join CARD_DIM e on e.crd_tp_code = b.card_type
+	   left join CST_DIM f on f.ANCHOR_ID = b.cardhold_id 
+	        and to_date(f.eff_fm_dt, 'yyyy-MM-dd') <= to_date('{pDate}', 'yyyy-MM-dd')
+            and to_date(f.eff_to_dt, 'yyyy-MM-dd') > to_date('{pDate}', 'yyyy-MM-dd')
+	   left join TXN_DIM g on g.TXN_TP_CODE = a.TXN_TP_CODE 
+	   left join CDR_DIM h on h.cdr_dt = a.txn_dt 
+	    
+   
+   
+   
+   
+
+

@@ -1,0 +1,133 @@
+create table dmt.ac_ar_dim(
+    ac_ar_dim_id INT IDENTITY(1,1),
+    anchord_id char(32) primary key,
+    ar_nbr varchar(256),
+    ac_tp varchar(256),
+    term_in_dys integer,
+    term_in_mo integer,
+    eff_fm_dt date,
+    eff_to_dt date
+);
+
+create table dmt.ou_dim(
+    ou_dim_id INT IDENTITY(1,1),
+    anchor_id char(32) not null primary key,
+	 ou_code varchar(256),
+    area_code varchar(256),
+    area_nm varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null
+);
+
+create table dmt.ccy_dim(
+    ccy_dim_id INT IDENTITY(1,1),
+    anchor_id char(32) not null primary key,
+    alphabet_ccy_code varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null
+);
+
+create table dmt.cst_dim(
+    cst_dim_id INT IDENTITY(1,1),
+    anchor_id char(32) not null primary key,
+    cst_nm varchar(256),
+    cst_nbr varchar(256),
+    cst_type varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null
+);
+
+create table dmt.txn_tp_dim(
+    txn_tp_dim_id INT IDENTITY(1,1),
+    anchor_id char(32) not null primary key,
+    txn_tp_code varchar(256),
+    txn_tp_nm varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null
+);
+
+create table dmt.card_tp_dim(
+    crd_tp_dim_id INT IDENTITY(1,1),
+    anchor_id char(32) not null primary key,
+    crd_tp_code varchar(256),
+    crd_tp_nm varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null
+);
+
+create table dmt.fee_tp_dim(
+    fee_tp_dim_id INT IDENTITY(1,1) primary key,
+    fee_grp varchar(256),
+    fee_type varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null
+);
+
+create table dmt.gl_itm_dim(
+    gl_itm_dim_id INT IDENTITY(1,1) primary key,
+    gl_code varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null,
+    gl_dsc varchar(256)
+);
+
+create table dmt.pd_dim(
+    pd_dim_id INT IDENTITY(1,1) primary key,
+    anchor_id char(32) not null primary key,
+    pd_nm varchar(256),
+    pd_code varchar(256),
+    pd_scm_nm varchar(256),
+    eff_fm_dt date not null,
+    eff_to_dt date not null
+);
+
+
+create table dmt.expn_anl_fct(
+    cdr_dt_dim_id int,
+    ou_dim_id int,
+    fee_tp_dim_id int,
+    gl_dim_id int,
+    remarks varchar(256),
+    txn_fee_amt DECIMAL
+);
+
+create table dmt.fnc_dep_ar_fct(
+   cdr_dt_dim_id int,
+   cst_dim_id int,
+   ou_dim_id int,
+   pd_dim_id int,
+   ac_ar_dim_id int,
+   amt DECIMAL
+);
+
+create table dmt.fee_anl_fct(
+    cdr_dt_dim_id int,
+    cst_dim_id int,
+    ou_dim_id int,
+    fee_tp_dim_id int, 
+    ac_ar_dim_id int,
+    gl_itm_dim_id int,
+    txn_fee_amt decimal
+);
+
+create table card_txn_anl_fct(
+    cdr_dt_dim_id int,
+    ou_dim_id int,
+    card_tp_dim_id int,
+    cst_dim_id int,
+    txn_tp_dim_id int,
+    txn_amt decimal,
+    card_nbr varchar(256),
+    txn_dt date,
+    pst_dt date,
+    txn_dsc varchar(256)
+);
+
+create table dmt.cdr_dt_dim(
+   cdr_dt_dim_id int,
+   crt_dt date,
+   year_number int,
+   quater_number int,
+   month_number int, 
+   date_value int
+)

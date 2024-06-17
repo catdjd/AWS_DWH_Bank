@@ -1,0 +1,229 @@
+CREATE TABLE awm.acg_stc_itm(
+    acg_stm_itm_id char(32) not null primary key,
+    unq_id_in_scr_stm varchar(256) not null ,
+    gl_sub_head_code varchar(256),
+    crncy_code varchar(256),
+    sol_id varchar(256),
+    src_stm_id char(32) not null ,
+    acg_stm_itm_tp_id char(32),
+    dsc varchar(256),
+    crt_dt date,
+    ppn_dt date,
+    eff_dt date not null,
+    end_dt date not null
+);
+
+CREATE table awm.ar(
+    ar_id char(32) not null primary key,
+    urc_stm_id char(32) not null unique,
+    unq_id_in_src_stm varchar(256) ,
+    ar_tp_id char(32),
+    est_end_dt date,
+    dmnn_ccy_id char(32),
+    ar_nbr varchar(256),
+    ar_nm varchar(256),
+    crt_dt date, 
+    ppn_dt date,
+    eff_dt date not null,
+    end_dt date not null
+);
+
+create table awm.ip(
+    ip_id char(32) not null primary key, 
+    unq_id_in_src_stm varchar(256) not null,
+    src_stm_id char(32),
+    ip_tp_id char(32) not null,
+    ip_nm varchar(256),
+    crt_dt date,
+    ppn_dt date,  
+    eff_dt date,
+    end_dt date 
+);
+
+create table awm.ar_x_ip(
+    ar_id char(32) not null primary key,
+    src_stm_id char(32) not null,
+    ip_id char(32),
+    ar_x_ip_rltnp_tp_id char(32) not null,
+    src_eff_dt date,
+    ppn_dt date,
+    eff_dt date,
+    end_dt date
+);
+
+create table awm.au_bal(
+    au_id char(32) not null primary key,
+    src_stm_id char(32),
+    pnt_bal_tp_id char(32),
+    prd_bal_tp_id char(32),
+    uom_id char(32),
+    pst_atm decimal(25,4),
+    eff_strt_dt date,
+    eff_end_dt date
+);
+
+create table awm.ar_x_au(
+    ar_id char(32) not null primary key,
+    src_stm_id char(32) not null,
+    au_id char(32),
+    ar_x_au_rltnp_id char(32) not null,
+    ppn_dt date,
+    eff_dt date,
+    end_dt date
+);
+
+create table awm.ccy(
+    ccy_id char(32) not null primary key,
+    src_stm_id char(32) not null,
+    unq_id_in_src_st char(32)  not null,
+    ccy_code char(32) not null,
+    ccy_nm varchar(256) not null,
+    crt_dt date,
+    ppn_dt date,
+    eff_dt  date not null,
+    end_dt date not null
+);
+
+create table awm.ou(
+    ou_id char(32) not null primary key,
+    ou_code varchar(256),
+    src_stm_id char(32) not null,
+    prn_ou_id char(32) not null,
+    area_code varchar(256),
+    area_nm varchar(256),
+    ppn_dt date
+);
+
+create table awm.ar_x_ou(
+   ar_id char(32) not null primary key,
+   ou_id char(32) not null,
+   src_stm_id char(32) not null,
+   ar_x_ou_rltnp_id char(32) not null,
+   ou_code char(32) not null,
+   ppn_dt date,
+   eff_dt date not null,
+   end_dt date not null
+);
+
+create table awm.pd(
+    pd_id char(32) not null primary key,
+    unq_id_in_src_stm varchar(256) not null,
+    pd_code varchar(256) not null,
+    pd_nm varchar(100),
+    scr_stm_id char(32) not null,
+    pd_tp_id char(32),
+    crt_dt date,
+    ppn_dt date, 
+    eff_dt date not null,
+    end_dt date not null
+);
+
+create table awm.ar_x_pd(
+    ar_id char(32) not null primary key,
+    pd_id char(32) ,
+    src_stm_id char(32) not null,
+    ar_x_pd_rltnp_tp_id char(32) not null,
+    ppn_dt date,
+    eff_dt date not null,
+    end_dt date not null
+);
+
+create table awm.ip_x_cl(
+   ip_id char(32) not null primary key,
+   cl_id char(32) not null,
+   cl_code char(32) not null,
+   cst_type char(32) not null,
+   ip_x_cl_rltnp_tp_id char(32) not null,
+   src_stm_id char(32) not null,
+   ppn_dt date,
+   eff_dt date not null,
+   end_dt date not null
+);
+
+create table awm.txn(
+    txn_tp_id char(32) not null,-- chú ý 
+    txn_tp_code varchar(256) not null,
+    txn_ccy_id char(32),
+    txn_ou_id char(32),
+    ou_code varchar(256),
+    txn_dt date,
+    src_stm_id char(32) not null,
+    unq_id_in_src_stm char(32) not null,
+    txn_id char(32) not null,
+    dsc varchar(256),
+    pymtc_id char(32) not null,
+    mcc varchar(256),
+    itt_dt date,
+    net_cash_flow_amt_fcy decimal(25,4)
+);
+
+create table awm.txn_fee(
+    txn_fee_id char(32),
+    cst_id char(32),
+    ou_id char(32),
+    ar_nbr varchar(256),
+    gl_sub_head_code varchar(256),
+    txn_dt date,
+    fee_type char(32),
+    fee_grp varchar(32),
+    txn_fee_amt decimal(25,4)
+);
+
+create table awm.txn_expn(
+    txn_expn_id char(32),
+    ou_id char(32),
+    gl_sub_head_code varchar(256),
+    txn_dt date,
+    fee_type char(32),
+    fee_grp varchar(32),
+    txn_expn_amt decimal(25,4)
+);
+create table awm.pytmc(
+    pymtc_id char(32) not null primary key,
+    unq_id_in_src_stm varchar(256) not null,
+    src_stm_id char(32) not null,
+    pymtc_tp_id char(32),
+    cardhold_id  char(32),
+    issue_ou_id decimal,
+    ou_code varchar(256),
+    co_nm varchar(256),
+    stm_ac_nbr varchar(256),
+    card_issu_dt date,
+    card_exp_dt date,
+    activate_dt date,
+    ppn_dt date,
+    eff_dt date not null,
+    end_dt date not null,
+    card_st varchar(256),
+    acctnbr varchar(256),
+    cardhold_nm varchar(256)
+);
+
+create table awm.etl_log(
+    job_nm varchar(256),
+    prj_nm char(32),
+    job_tpy char(32),
+    etl_dt date,
+    job_run_id char(32),
+    status char(32),
+    strt_dt date,
+    strt_tm timestamp,
+    note character,
+    dpu_per_hour numeric(12, 5)
+);
+
+create table awm.cv(
+     cl_id char(32),
+     src_stm_id char(32),
+     cl_scm_id char(32),
+     eff_dt date,
+     end_dt date,
+     cl_code varchar(256),
+     cl_nm varchar(1000),
+     cl_scm_code varchar(256)
+);
+
+
+
+
+yy-MM-dd')
